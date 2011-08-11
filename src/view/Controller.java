@@ -14,29 +14,23 @@ import static view.helper.GUIShouldChecker.shouldFilterPrimes;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
 import math.MathOperations;
-import prime.metric.ConditionChecker;
+import prime.metric.Algorithms;
 import prime.metric.Metric;
-import prime.metric.MetricCollection;
-import util.MyLogger;
-import util.Pair;
+import prime.metric.MetricList;
+import util.StopWatch;
+import util.StopWatch.MethodWithResult;
 import view.helper.CheckResult;
 
 public class Controller {
-	private static final MyLogger log = new MyLogger();
-
-	private final Collection<Metric> metrics;
 
 	private final GUI gui;
 
 	public Controller(GUI gui) {
 		this.gui = gui;
-		log.setLogLevel(MyLogger.OFF);
-		metrics = new MetricCollection();
 	}
 
 	protected List<Double> getAllQs(BigInteger bi) {
@@ -65,18 +59,23 @@ public class Controller {
 		return "8*" + factor + sign + r.abs();
 	}
 
-	public CheckResult check(BigInteger testValue) {
+	public CheckResult check(final BigInteger testValue) {
 		CheckResult result = new CheckResult();
 
-		BigInteger fmax = testValue.add(ONE).shiftRight(1);
+		final BigInteger fmax = testValue.add(ONE).shiftRight(1);
 		BigInteger smax = testValue.shiftRight(1);
-		BigInteger start = testValue.subtract(ONE).shiftLeft(1);
+		final BigInteger start = testValue.subtract(ONE).shiftLeft(1);
+		BigInteger iterations = null;
 
-		long startTime = System.currentTimeMillis();
+		StopWatch<BigInteger> watch = new StopWatch<BigInteger>();
+		result.elapsedTime = watch.measure(new MethodWithResult<BigInteger>() {
+			@Override
+			public BigInteger run() {
+				return Algorithms.getIterationCount(testValue, fmax, start);
+			}
+		});
+		iterations = watch.getResult();
 
-		BigInteger iterations = getIterationCount(testValue, fmax, start);
-
-		result.elapsedTime = System.currentTimeMillis() - startTime;
 		result.isPrime = iterations.compareTo(BigInteger.valueOf(-1)) == 0;
 		if (!result.isPrime) {
 			result.f = fmax.subtract(iterations.shiftLeft(1));
@@ -127,10 +126,8 @@ public class Controller {
 			if (!isPrime) {
 				// search another "less" definition in form of x =
 				// f²-s²
-				BigInteger max = bi.subtract(BigInteger.valueOf(5)).divide(
-						BigInteger.valueOf(2));
-				for (s = BigInteger.ZERO; s.compareTo(max) <= 0; s = s
-						.add(BigInteger.ONE)) {
+				BigInteger max = bi.subtract(BigInteger.valueOf(5)).divide(BigInteger.valueOf(2));
+				for (s = BigInteger.ZERO; s.compareTo(max) <= 0; s = s.add(BigInteger.ONE)) {
 					BigInteger square = getSquareNumber(bi, s);
 
 					BigInteger sqrt = getSqrt(square);
@@ -141,8 +138,7 @@ public class Controller {
 				}
 			}
 
-			addResultRow(bi, isPrime, primes_prod, primes_sum, remainder,
-					fermat, d, s);
+			addResultRow(bi, isPrime, primes_prod, primes_sum, remainder, fermat, d, s);
 			// can be prime, but is not prime
 			if (isPrime) {
 				// primes_prod = primes_prod.multiply(bi);
@@ -190,125 +186,41 @@ public class Controller {
 
 	// ----------------------------------------------------------------------
 
-	/**
-	 * Returns -1 if <code>bi</code> is a prime (not vice versa!).<br>
-	 * There are primes where this method returns 1, e.g. 19, 73 and 163.
-	 * 
-	 * @param bi
-	 * @param fmax
-	 * @param start
-	 * @return
-	 */
-	private BigInteger getIterationCount(BigInteger bi, BigInteger fmax,
-			BigInteger start) {
-		BigInteger iter = ONE;
-		BigInteger st = start;
-		BigInteger f = fmax;
-		BigInteger f_sqr = sqr(f);
-		BigInteger toTest = start;
+	public void addResultRow(BigInteger bi, boolean isPrime, BigInteger primes_prod,
+			BigInteger primes_sum, BigInteger remainder, boolean isFermat, BigInteger d,
+			BigInteger s) {
 
-		while (!isSquareNum(toTest)) {
-			iter = iter.add(ONE);
-			st = st.subtract(MathOperations.EIGHT);
+		MetricList metrics = new MetricList(bi);
 
-			// BigInteger diff = f.subtract(BigInteger.ONE).shiftLeft(2); //
-			// 4*(f-1)
-			// f = f.subtract(TWO);
-			// f_sqr = f_sqr.subtract(diff);
-
-			f = f.subtract(MathOperations.TWO);
-			f_sqr = sqr(f);
-
-			log.info("f = " + f);
-
-			toTest = f_sqr.subtract(bi).subtract(st);
-
-			if (toTest.signum() < 0) {
-				return BigInteger.valueOf(-1);
-			}
-		}
-
-		return iter;
-	}
-
-	public void addResultRow(BigInteger bi, boolean isPrime,
-			BigInteger primes_prod, BigInteger primes_sum,
-			BigInteger remainder, boolean isFermat, BigInteger d, BigInteger s) {
-
-		Metric.bi = bi;
-		Metric.fmax = bi.add(BigInteger.ONE).divide(MathOperations.TWO);
-		Metric.fmin = MathOperations.sqrtFast(bi).add(BigInteger.ONE);
-		Metric.smax = bi.shiftRight(1);
-		Metric.isPrime = isPrime;
-		Metric.isFermat = isFermat;
 		// comment out for performance reasons
-		Metric.primFactors = MathOperations.getPrimFactorization(bi);
-		Metric.start = bi.subtract(ONE).shiftLeft(1);
-		Metric.iterations = getIterationCount(bi, Metric.fmax, Metric.start);
-		Metric.f = s.add(d);
-		Metric.s = s;
-		Metric.fmax_minus_f = Metric.fmax.subtract(Metric.f);
-		Metric.smax_minus_s = Metric.smax.subtract(Metric.s);
+		//		vIters = MathOperations.getSquaredCongruenceIters(bi, Metric.fmax);
+		//		wIters = MathOperations.getSquaredCongruenceIters(bi, Metric.smax);
 
-		List<BigInteger> vIters = new ArrayList<BigInteger>(), wIters = new ArrayList<BigInteger>();
-		// comment out for performance reasons
-		vIters = MathOperations.getSquaredCongruenceIters(bi, Metric.fmax);
-		wIters = MathOperations.getSquaredCongruenceIters(bi, Metric.smax);
-		List<Pair<BigInteger, BigInteger>> validPairs = MathOperations
-				.getPairsVW(bi, vIters, wIters);
-		Metric.validPairs = validPairs;
 
-		if (validPairs.size() > 0) {
-			Metric.v = validPairs.get(0).first;
-			Metric.w = validPairs.get(0).second;
-		} else {
-			Metric.v = BigInteger.valueOf(-1);
-			Metric.w = BigInteger.valueOf(-1);
-		}
-		Pair<BigInteger, BigInteger> fmax_rem = MathOperations
-				.getSquaredRemainder(Metric.fmax);
-		Metric.fmax_r = fmax_rem.first;
-		Metric.fmax_modulo = fmax_rem.second;
-		Metric.fmax_r_sign = MathOperations.getRemainderSign(Metric.fmax,
-				Metric.fmax_r, Metric.fmax_modulo);
-		Metric.fmax_min = MathOperations.getLowerBound(bi, Metric.fmax_r,
-				Metric.fmax_modulo);
-
-		Pair<BigInteger, BigInteger> smax_rem = MathOperations
-				.getSquaredRemainder(Metric.smax);
-		Metric.smax_r = smax_rem.first;
-		Metric.smax_modulo = smax_rem.second;
-		Metric.smax_r_sign = MathOperations.getRemainderSign(Metric.smax,
-				Metric.smax_r, Metric.smax_modulo);
-		Metric.smax_min = MathOperations.getLowerBound(bi, Metric.smax_r,
-				Metric.smax_modulo);
-
-		if (Metric.fmax_r.equals(BigInteger.valueOf(3))
-				&& Metric.smax_r.equals(BigInteger.ONE)) {
-			log.info("3-1 @ " + bi);
-			// not existent, because rf even <=> rs odd
-		}
+		//		if (Metric.fmax_r.equals(BigInteger.valueOf(3)) && Metric.smax_r.equals(BigInteger.ONE)) {
+		//			//			log.info("3-1 @ " + bi);
+		//			// not existent, because rf even <=> rs odd
+		//		}
 
 		// --------------------------------------------------------
-
-		if (gui.cbxFilterDiff0.isSelected()) {
-			BigInteger k = Metric.f.divide(Metric.fmax_modulo);
-			if (ConditionChecker.isOfNegativeForm(Metric.f, Metric.fmax_modulo)) {
-				k = k.add(ONE);
-			}
-			BigInteger diff_fmax = k.subtract(Metric.fmax_min);
-			if (diff_fmax.equals(BigInteger.ZERO)) {
-				return;
-			}
-		}
-
-		if (gui.cbxFilterDiffMax_fi.isSelected()) {
-			BigInteger max_fi = bi.add(BigInteger.valueOf(9)).divide(
-					BigInteger.valueOf(6));
-			if (Metric.f.subtract(max_fi).equals(BigInteger.ZERO)) {
-				return;
-			}
-		}
+		//FIXME
+		//		if (gui.cbxFilterDiff0.isSelected()) {
+		//			BigInteger k = Metric.f.divide(Metric.fmax_modulo);
+		//			if (ConditionChecker.isOfNegativeForm(Metric.f, Metric.fmax_modulo)) {
+		//				k = k.add(ONE);
+		//			}
+		//			BigInteger diff_fmax = k.subtract(Metric.fmax_min);
+		//			if (diff_fmax.equals(BigInteger.ZERO)) {
+		//				return;
+		//			}
+		//		}
+		//
+		//		if (gui.cbxFilterDiffMax_fi.isSelected()) {
+		//			BigInteger max_fi = bi.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
+		//			if (Metric.f.subtract(max_fi).equals(BigInteger.ZERO)) {
+		//				return;
+		//			}
+		//		}
 
 		// ----------------------------------------------------------
 
@@ -319,7 +231,15 @@ public class Controller {
 		gui.getModel().addRow(results);
 	}
 
-	public Collection<Metric> getMetrics() {
-		return metrics;
+	public List<String> getColumnNames() {				
+		List<String> names = new ArrayList<String>();
+
+		MetricList metrics = new MetricList(ONE);
+		for (Metric m : metrics) {
+			names.add(m.getColumnName());
+		}
+
+		return names;
 	}
+
 }

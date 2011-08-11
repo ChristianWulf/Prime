@@ -14,6 +14,10 @@ public class IsPrime {
 		return AKSTest.isPrime(BigInteger.valueOf(n));
 	}
 
+	public static boolean isPolynomialPrime(BigInteger n) {
+		return AKSTest.isPrime(n);
+	}
+
 	public static boolean isProbablyPrime(Integer n) {
 		return BigInteger.valueOf(n).isProbablePrime(CERTAINTY);
 	}

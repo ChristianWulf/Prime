@@ -1,17 +1,36 @@
 package prime.metric;
 
-import static java.math.BigInteger.ONE;
 import static math.MathOperations.sqr;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Map;
 
 import math.MathOperations;
 import util.Pair;
 
-public class MetricCollection extends ArrayList<Metric> {
+/**
+ * <code>MetricList</code> represents one row, i.e. a list of metric values for
+ * a given number x.
+ * 
+ * @author Nogge
+ * 
+ */
+public class MetricList extends ArrayList<Metric> {
 
-	public MetricCollection() {
+	private static BigInteger ZERO = BigInteger.valueOf(0);
+	private static BigInteger ONE = BigInteger.valueOf(1);
+	private static BigInteger TWO = BigInteger.valueOf(2);
+	private static BigInteger FIVE = BigInteger.valueOf(5);
+	private static BigInteger EIGHT = BigInteger.valueOf(8);
+	private static BigInteger TEN = BigInteger.valueOf(10);
+
+	private final ValueFactory factory;
+	private final BigInteger x;
+
+	public MetricList(BigInteger x) {
+		this.x = x;
+		factory = new ValueFactory(x);
 		addMetrics();
 	}
 
@@ -19,18 +38,19 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("x") {
 			@Override
 			public String getResult() {
-				return bi.toString();
+				return x.toString();
 			}
 		});
 		add(new Metric("prime?") {
 			@Override
 			public String getResult() {
-				return isPrime ? "yes" : "no";
+				return factory.getIsPrime() ? "yes" : "no";
 			}
 		});
 		add(new Metric("prim fac") {
 			@Override
 			public String getResult() {
+				Map<BigInteger, BigInteger> primFactors = factory.getPrimFactors();
 				if (primFactors.isEmpty()) {
 					return "-";
 				}
@@ -44,10 +64,11 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("#prim factors") {
 			@Override
 			public String getResult() {
+				Map<BigInteger, BigInteger> primFactors = factory.getPrimFactors();
 				if (primFactors.isEmpty()) {
 					return "-";
 				}
-				BigInteger primFactorsNum = BigInteger.ZERO;
+				BigInteger primFactorsNum = ZERO;
 				for (BigInteger val : primFactors.values()) {
 					primFactorsNum = primFactorsNum.add(val);
 				}
@@ -57,10 +78,11 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("minimum") {
 			@Override
 			public String getResult() {
+				Map<BigInteger, BigInteger> primFactors = factory.getPrimFactors();
 				if (primFactors.isEmpty()) {
 					return "-";
 				}
-				BigInteger minimum = bi;
+				BigInteger minimum = x;
 				for (BigInteger key : primFactors.keySet()) {
 					if (key.compareTo(minimum) < 0) {
 						minimum = key;
@@ -75,28 +97,28 @@ public class MetricCollection extends ArrayList<Metric> {
 		// return start.toString();
 		// }
 		// });
-		add(new Metric("iterations") {
-			@Override
-			public String getResult() {
-				if (max.compareTo(iterations) < 0) {
-					max = iterations;
-				}
-				return iterations.toString();
-			}
-		});
-
-		add(new Metric("x/iterations") {
-			@Override
-			public String getResult() {
-				return String.format("%.3f", Metric.bi.doubleValue()
-						/ iterations.doubleValue());
-			}
-		});
-
+		//		add(new Metric("iterations") {
+		//			@Override
+		//			public String getResult() {
+		//				BigInteger iterations = factory.getIterations();
+		//				if (max.compareTo(iterations) < 0) {
+		//					max = iterations;
+		//				}
+		//				return iterations.toString();
+		//			}
+		//		});
+		//
+		//		add(new Metric("x/iterations") {
+		//			@Override
+		//			public String getResult() {
+		//				BigInteger iterations = factory.getIterations();
+		//				return String.format("%.3f", x.doubleValue() / iterations.doubleValue());
+		//			}
+		//		});
 		// add(new Metric("x mod (f-s)") {
 		// @Override
 		// public String getResult() {
-		// return bi.mod(f.subtract(s)).toString();
+		// return x.mod(f.subtract(s)).toString();
 		// }
 		// });
 		// add(new Metric("start-8*iterations") {
@@ -145,7 +167,7 @@ public class MetricCollection extends ArrayList<Metric> {
 			@Override
 			public String getResult() {
 				String fs = "";
-				for (Pair<BigInteger, BigInteger> pair : validPairs) {
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 					fs += "(" + pair.first + "," + pair.second + ")";
 				}
 				return fs;
@@ -155,7 +177,7 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// String fs = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// fs += "(" + pair.first.subtract(pair.second) + ")";
 		// }
 		// return fs;
@@ -165,8 +187,8 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// String fs = "";
-		// BigInteger fmin = MathOperations.sqrtFast(bi).add(BigInteger.ONE);
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// BigInteger fmin = MathOperations.sqrtFast(x).add(ONE);
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// fs += "(" + pair.first.subtract(fmin) + ")";
 		// }
 		// return fs;
@@ -176,9 +198,9 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// String fs = "";
-		// BigInteger fmin = MathOperations.sqrtFast(bi).add(BigInteger.ONE);
+		// BigInteger fmin = MathOperations.sqrtFast(x).add(ONE);
 		// BigInteger fmin_sqr = sqr(fmin);
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// fs += "(" + sqr(pair.first).subtract(fmin_sqr) + ")";
 		// }
 		// return fs;
@@ -187,29 +209,27 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("2^(n-1) mod 53") {
 			@Override
 			public String getResult() {
-				return BigInteger
-						.valueOf(2)
-						.modPow(bi.subtract(BigInteger.ONE),
-								BigInteger.valueOf(53)).toString();
+				return BigInteger.valueOf(2).modPow(x.subtract(ONE), BigInteger.valueOf(53))
+						.toString();
 			}
 		});
 		add(new Metric("fmax") {
 			@Override
 			public String getResult() {
-				return fmax.toString();
+				return factory.getFmax().toString();
 			}
 		});
 		add(new Metric("fmin") {
 			@Override
 			public String getResult() {
-				return fmin.toString();
+				return factory.getFmin().toString();
 			}
 		});
 		// add(new Metric("q of n=2qk-k²") {
 		// @Override
 		// public String getResult() {
 		// StringBuilder qsAsString = new StringBuilder();
-		// for (double q : getAllQs(Metric.bi)) {
+		// for (double q : getAllQs(Metric.x)) {
 		// qsAsString.append(q + "|");
 		// }
 		// return qsAsString.toString();
@@ -218,7 +238,7 @@ public class MetricCollection extends ArrayList<Metric> {
 		// add(new Metric("index of q") {
 		// @Override
 		// public String getResult() {
-		// List<Double> qs = getAllQs(Metric.bi);
+		// List<Double> qs = getAllQs(Metric.x);
 		// for (int index = 0; index < qs.size(); index++) {
 		// double q = qs.get(index);
 		// // if q is even then return q
@@ -232,119 +252,112 @@ public class MetricCollection extends ArrayList<Metric> {
 		// return "-";
 		// }
 		// });
-		//		add(new Metric("n=2qk*k²") {
-		//			@Override
-		//			public String getResult() {
-		//				StringBuilder qs = new StringBuilder();
-		//				int k = 2;
-		//				double q = 0;
-		//				int kStart = k;
-		//				boolean started = false;
-		//				BigInteger savedQuo = BigInteger.ZERO;
-		//				do {
-		//					// x+k²
-		//					BigInteger z = bi.add(BigInteger.valueOf(k * k));
-		//					// 2k
-		//					BigInteger n = BigInteger.valueOf(2 * k);
-		//					// x+k² mod 2k == 0 ?
-		//					if (z.remainder(n).equals(BigInteger.ZERO)) {
-		//						BigInteger curQuo = z.divide(n);
-		//						if (!started) {
-		//							savedQuo = curQuo;
-		//							kStart = k;
-		//							started = true;
-		//						} else {
-		//							if (curQuo.equals(savedQuo)) {
-		//								break;
-		//							}
-		//						}
-		//					}
-		//					q = z.doubleValue() / n.doubleValue();
-		//					qs.append(q + "|");
-		//					k++;
-		//				} while (q < bi.doubleValue());
-		//				double integral = 0.5 * Math.log(k) * bi.doubleValue() + 0.25
-		//						* (k * k - kStart * kStart);
-		//				double diffIntegral = (k - kStart) * savedQuo.doubleValue()
-		//						- integral;
-		//				return "(" + kStart + "," + k + ")=" + diffIntegral;
-		//			}
-		//		});
+		// add(new Metric("n=2qk*k²") {
+		// @Override
+		// public String getResult() {
+		// StringBuilder qs = new StringBuilder();
+		// int k = 2;
+		// double q = 0;
+		// int kStart = k;
+		// boolean started = false;
+		// BigInteger savedQuo = ZERO;
+		// do {
+		// // x+k²
+		// BigInteger z = x.add(BigInteger.valueOf(k * k));
+		// // 2k
+		// BigInteger n = BigInteger.valueOf(2 * k);
+		// // x+k² mod 2k == 0 ?
+		// if (z.remainder(n).equals(ZERO)) {
+		// BigInteger curQuo = z.divide(n);
+		// if (!started) {
+		// savedQuo = curQuo;
+		// kStart = k;
+		// started = true;
+		// } else {
+		// if (curQuo.equals(savedQuo)) {
+		// break;
+		// }
+		// }
+		// }
+		// q = z.doubleValue() / n.doubleValue();
+		// qs.append(q + "|");
+		// k++;
+		// } while (q < x.doubleValue());
+		// double integral = 0.5 * Math.log(k) * x.doubleValue() + 0.25
+		// * (k * k - kStart * kStart);
+		// double diffIntegral = (k - kStart) * savedQuo.doubleValue()
+		// - integral;
+		// return "(" + kStart + "," + k + ")=" + diffIntegral;
+		// }
+		// });
 		// add(new Metric("(a,b)") {
 		// @Override
 		// public String getResult() {
 		// String ab = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// ab += "(" + fmax.subtract(pair.first) + "," +
 		// fmax.subtract(pair.second) + ")";
 		// }
 		// return ab;
 		// }
 		// });
-		add(new Metric("f/s") {
+		add(new Metric("fi/si") {
 			@Override
 			public String getResult() {
-				if (validPairs.size() > 0) {
-					Pair<BigInteger, BigInteger> p = validPairs.get(validPairs
-							.size() - 1);
-					BigInteger fl = p.first;
-					BigInteger sl = p.second;
-					if (sl.equals(BigInteger.ZERO)) {
-						return "";
-					}
-					return String.format("%.2f",
-							fl.doubleValue() / sl.doubleValue());
-				} else
-					return "";
+				String fs = "";
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
+					fs += String.format("%.2f",
+							pair.first.doubleValue() / pair.second.doubleValue())
+							+ ",";
+				}
+				return fs;
 			}
 		});
 		add(new Metric("min(fmax)") {
 			@Override
 			public String getResult() {
-				return fmax_min.toString();
+				return factory.getFmax_min().toString();
 			}
 		});
 		add(new Metric("min(smax)") {
 			@Override
 			public String getResult() {
-				return smax_min.toString();
+				return factory.getSmax_min().toString();
 			}
 		});
 		add(new Metric("min(smax)+/-1/min(fmax)") {
 			// 1/2, 1 oder 2
 			@Override
 			public String getResult() {
-				if (fmax_min.equals(BigInteger.ZERO)) {
-					return BigInteger.ZERO.toString();
+				if (factory.getFmax_min().equals(ZERO)) {
+					return ZERO.toString();
 				}
-				BigInteger smax_min_temp = smax_min;
-				if (smax_min_temp.compareTo(fmax_min) > 0) {
-					return smax_min_temp.add(ONE).divide(fmax_min).toString();
+				BigInteger smax_min_temp = factory.getSmax_min();
+				if (smax_min_temp.compareTo(factory.getFmax_min()) > 0) {
+					return smax_min_temp.add(ONE).divide(factory.getFmax_min()).toString();
 				}
 				// return smax_min.divide(fmax_min).toString();
-				return "" + smax_min_temp.doubleValue()
-						/ fmax_min.doubleValue();
+				return "" + smax_min_temp.doubleValue() / factory.getFmax_min().doubleValue();
 			}
 		});
 		add(new Metric("fmin² mod x") {
 			@Override
 			public String getResult() {
-				BigInteger fmin = MathOperations.sqrtFast(bi).add(
-						BigInteger.ONE);
-				return sqr(fmin).mod(bi).toString();
+				BigInteger fmin = MathOperations.sqrtFast(x).add(ONE);
+				return sqr(fmin).mod(x).toString();
 			}
 		});
 		add(new Metric("fmax² mod x") {
 			@Override
 			public String getResult() {
-				BigInteger fmax2_x = sqr(fmax).mod(bi);
+				BigInteger fmax2_x = sqr(factory.getFmax()).mod(x);
 				return "" + fmax2_x.doubleValue();
 			}
 		});
 		add(new Metric("sqrt(fmin² mod x)") {
 			@Override
 			public String getResult() {
-				BigInteger fmin2_x = sqr(fmin).mod(bi);
+				BigInteger fmin2_x = sqr(factory.getFmin()).mod(x);
 				return "" + Math.sqrt(fmin2_x.doubleValue());
 			}
 		});
@@ -352,8 +365,8 @@ public class MetricCollection extends ArrayList<Metric> {
 			@Override
 			public String getResult() {
 				String fmodn = "";
-				for (Pair<BigInteger, BigInteger> pair : validPairs) {
-					fmodn += sqr(pair.first).mod(bi) + ",";
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
+					fmodn += sqr(pair.first).mod(x) + ",";
 				}
 				return fmodn;
 			}
@@ -362,8 +375,8 @@ public class MetricCollection extends ArrayList<Metric> {
 			@Override
 			public String getResult() {
 				String fmodn = "";
-				for (Pair<BigInteger, BigInteger> pair : validPairs) {
-					fmodn += sqr(pair.first).mod(fmax) + ",";
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
+					fmodn += sqr(pair.first).mod(factory.getFmax()) + ",";
 				}
 				return fmodn;
 			}
@@ -372,10 +385,9 @@ public class MetricCollection extends ArrayList<Metric> {
 			@Override
 			public String getResult() {
 				String fmodn = "";
-				for (Pair<BigInteger, BigInteger> pair : validPairs) {
-					fmodn += Math.sqrt(sqr(fmax).mod(bi).doubleValue())
-							/ Math.sqrt(sqr(pair.second).mod(bi).doubleValue())
-							+ ",";
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
+					fmodn += Math.sqrt(sqr(factory.getFmax()).mod(x).doubleValue())
+							/ Math.sqrt(sqr(pair.second).mod(x).doubleValue()) + ",";
 				}
 				return fmodn;
 			}
@@ -387,7 +399,7 @@ public class MetricCollection extends ArrayList<Metric> {
 		// return BigInteger.valueOf(-1).toString();
 		// }
 		// String smax_s = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// double quotient = smax.doubleValue() / pair.second.doubleValue();
 		// smax_s += String.format("%.2f", quotient) + "|";
 		// }
@@ -400,7 +412,7 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// String si = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// BigInteger diff = sqr(smax).subtract(sqr(pair.second));
 		// diff = diff.divide(BigInteger.valueOf(16));
 		// si += diff + "|";
@@ -414,7 +426,7 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// String si = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// BigInteger diff = sqr(smax).subtract(sqr(pair.second));
 		// diff = diff.divide(BigInteger.valueOf(16));
 		// diff = diff.divide(iterations);
@@ -432,14 +444,14 @@ public class MetricCollection extends ArrayList<Metric> {
 		// }
 		//
 		// String is = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// BigInteger myS = pair.second;
 		// BigInteger i = sqr(smax).subtract(sqr(myS));
 		// double quotient = i.doubleValue() / (16 * myS.doubleValue());
 		// is += String.format("%.2f", quotient) + "|";
 		// }
 		// // compute max
-		// Pair<BigInteger, BigInteger> last = validPairs.get(0);
+		// Pair<BigInteger, BigInteger> last = factory.getValidPairs().get(0);
 		// BigInteger i = sqr(smax).subtract(sqr(last.second));
 		// double quotient = i.doubleValue() / (16 * last.second.doubleValue());
 		// if (quotient > max.doubleValue()) {
@@ -453,7 +465,7 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// String si = "";
-		// for (Pair<BigInteger, BigInteger> pair : validPairs) {
+		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
 		// double quotient = pair.second.doubleValue() /
 		// iterations.doubleValue();
 		// si += String.format("%.2f", quotient) + "|";
@@ -461,13 +473,13 @@ public class MetricCollection extends ArrayList<Metric> {
 		// return si;
 		// }
 		// });
-		add(new Metric("fmax² mod x-fi² mod x") {
+		add(new Metric("(fmax² mod x) - (fi² mod x)") {
 			@Override
 			public String getResult() {
-				if (validPairs.size() > 0) {
-					Pair<BigInteger, BigInteger> f0 = validPairs.get(0);
-					return sqr(fmax).mod(bi).subtract(sqr(f0.first).mod(bi))
-							.toString();
+				BigInteger f0 = factory.getF0();
+				BigInteger fmax = factory.getFmax();
+				if (!f0.equals(fmax)) {
+					return sqr(fmax).mod(x).subtract(sqr(f0).mod(x)).toString();
 				} else {
 					return "";
 				}
@@ -476,10 +488,10 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("fmax² mod x/fi² mod x") {
 			@Override
 			public String getResult() {
-				if (validPairs.size() > 0) {
-					Pair<BigInteger, BigInteger> f0 = validPairs.get(0);
-					double result = sqr(fmax).mod(bi).doubleValue()
-							/ sqr(f0.first).mod(bi).doubleValue();
+				BigInteger f0 = factory.getF0();
+				BigInteger fmax = factory.getFmax();
+				if (!f0.equals(fmax)) {
+					double result = sqr(fmax).mod(x).doubleValue() / sqr(f0).mod(x).doubleValue();
 					return "" + result;
 				} else {
 					return "";
@@ -489,10 +501,10 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("fi² mod x - fi² mod fmax") {
 			@Override
 			public String getResult() {
-				if (validPairs.size() > 0) {
-					BigInteger f0 = validPairs.get(0).first;
-					return sqr(f0).mod(bi).subtract(sqr(f0).mod(fmax))
-							.toString();
+				BigInteger f0 = factory.getF0();
+				BigInteger fmax = factory.getFmax();
+				if (!f0.equals(fmax)) {
+					return sqr(f0).mod(x).subtract(sqr(f0).mod(fmax)).toString();
 				} else {
 					return "";
 				}
@@ -501,13 +513,13 @@ public class MetricCollection extends ArrayList<Metric> {
 		add(new Metric("fmax-f") {
 			@Override
 			public String getResult() {
-				return fmax_minus_f.toString();
+				return factory.getFmax_minus_f().toString();
 			}
 		});
 		add(new Metric("smax-s") {
 			@Override
 			public String getResult() {
-				return smax_minus_s.toString();
+				return factory.getSmax_minus_s().toString();
 			}
 		});
 		// add(new Metric("(smax-s)mod(fmax-f)") {
@@ -522,19 +534,17 @@ public class MetricCollection extends ArrayList<Metric> {
 		 * add(new Metric("f mod s") {
 		 * 
 		 * @Override public String getResult() { return (s.signum() > 0) ?
-		 * f.mod(s).toString() : "-"; } }); add(new Metric("iter mod f")
-		 * {
+		 * f.mod(s).toString() : "-"; } }); add(new Metric("iter mod f") {
 		 * 
 		 * @Override public String getResult() { return
-		 * iterations.mod(f).toString(); } }); add(new
-		 * Metric("fmax mod f") {
+		 * iterations.mod(f).toString(); } }); add(new Metric("fmax mod f") {
 		 * 
 		 * @Override public String getResult() { return fmax.mod(f).toString();
 		 * } }); add(new Metric("smax mod s") {
 		 * 
 		 * @Override public String getResult() { return (s.signum() > 0) ?
-		 * smax.mod(s).toString() : "-"; } }); add(new
-		 * Metric("fmax² - f²") { // es gilt: fmax² - f² = smax² - s²
+		 * smax.mod(s).toString() : "-"; } }); add(new Metric("fmax² - f²") { //
+		 * es gilt: fmax² - f² = smax² - s²
 		 * 
 		 * @Override public String getResult() { return
 		 * sqr(fmax).subtract(sqr(f)).toString(); } });
@@ -544,8 +554,8 @@ public class MetricCollection extends ArrayList<Metric> {
 		 * 
 		 * @Override public String getResult() { return
 		 * sqr(smax).subtract(sqr(s)).divide(BigInteger.valueOf(16)).toString();
-		 * } }); add(new Metric("(fmax²-f²) mod 16") { // es gilt:
-		 * (fmax²-f² == smax²-s² == 0) mod 16
+		 * } }); add(new Metric("(fmax²-f²) mod 16") { // es gilt: (fmax²-f² ==
+		 * smax²-s² == 0) mod 16
 		 * 
 		 * @Override public String getResult() { return
 		 * sqr(fmax).subtract(sqr(f)).mod(BigInteger.valueOf(16)).toString(); }
@@ -588,21 +598,21 @@ public class MetricCollection extends ArrayList<Metric> {
 		// return smax_r.multiply(BigInteger.valueOf(smax_r_sign)).toString();
 		// }
 		// });
-		add(new Metric("diff_min(fmax)") {
-			@Override
-			public String getResult() {
-				BigInteger k = v.divide(fmax_modulo);
-				if (ConditionChecker.isOfNegativeForm(v, fmax_modulo)) {
-					k = k.add(ONE);
-				}
-				return k.subtract(fmax_min).toString();
-			}
-		});
+		//		add(new Metric("diff_min(fmax)") {
+		//			@Override
+		//			public String getResult() {
+		//				BigInteger k = v.divide(fmax_modulo);
+		//				if (ConditionChecker.isOfNegativeForm(v, fmax_modulo)) {
+		//					k = k.add(ONE);
+		//				}
+		//				return k.subtract(fmax_min).toString();
+		//			}
+		//		});
 		// add(new Metric("diff_max(fi)") {
 		// @Override
 		// public String getResult() {
 		// BigInteger max_fi =
-		// bi.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
+		// x.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
 		// return f.subtract(max_fi).toString();
 		// }
 		// });
@@ -610,16 +620,16 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// BigInteger min_fi =
-		// MathOperations.upper_Gauss(Math.sqrt(bi.doubleValue()));
+		// MathOperations.upper_Gauss(Math.sqrt(x.doubleValue()));
 		// return f.subtract(min_fi).toString();
 		// }
 		// });
 		// add(new Metric("diff_min-max(fi)") {
 		// @Override
 		// public String getResult() {
-		// BigInteger min_fi = upper_Gauss(Math.sqrt(bi.doubleValue()));
+		// BigInteger min_fi = upper_Gauss(Math.sqrt(x.doubleValue()));
 		// BigInteger max_fi =
-		// bi.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
+		// x.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
 		// return min_fi.subtract(max_fi).toString();
 		// }
 		// });
@@ -719,23 +729,23 @@ public class MetricCollection extends ArrayList<Metric> {
 		// @Override
 		// public String getResult() {
 		// BigInteger max_fi =
-		// bi.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
+		// x.add(BigInteger.valueOf(9)).divide(BigInteger.valueOf(6));
 		// return getDivisorRemainderForm(max_fi, EIGHT);
 		// }
 		// });
 		// add(new Metric("min(fi)") {
 		// @Override
 		// public String getResult() {
-		// BigInteger min_fi = upper_Gauss(Math.sqrt(bi.doubleValue()));
+		// BigInteger min_fi = upper_Gauss(Math.sqrt(x.doubleValue()));
 		// return getDivisorRemainderForm(min_fi, EIGHT);
 		// }
 		// });
 		// add(new Metric("sqrtForm(x)") {
 		// @Override
 		// public String getResult() {
-		// double sqrt = Math.sqrt(bi.doubleValue());
+		// double sqrt = Math.sqrt(x.doubleValue());
 		// int sqrtInt = (int) Math.floor(sqrt);
-		// BigInteger diff = bi.subtract(BigInteger.valueOf(sqrtInt * sqrtInt));
+		// BigInteger diff = x.subtract(BigInteger.valueOf(sqrtInt * sqrtInt));
 		// return sqrtInt + "²" + (diff.signum() == -1 ? "-" : "+") +
 		// diff.abs();
 		// }

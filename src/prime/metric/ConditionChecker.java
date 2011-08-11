@@ -4,6 +4,8 @@ import static math.MathOperations.getSqrt;
 
 import java.math.BigInteger;
 
+import prime.IsPrime;
+
 public class ConditionChecker {
 
 	private static BigInteger ZERO = BigInteger.valueOf(0);
@@ -85,4 +87,21 @@ public class ConditionChecker {
 		return modulo.compareTo(halfModulo) >= 0;
 
 	}
+
+	public static boolean isPolynomialPrime(Integer n) {
+		return IsPrime.isPolynomialPrime(n);
+	}
+
+	public static boolean isPolynomialPrime(BigInteger n) {
+		return IsPrime.isPolynomialPrime(n);
+	}
+
+	public static boolean isProbablyPrime(Integer n) {
+		return IsPrime.isProbablyPrime(n);
+	}
+
+	public static boolean isPrime(int x) {
+		return IsPrime.isPrime(x);
+	}
+
 }

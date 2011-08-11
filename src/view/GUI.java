@@ -7,7 +7,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.print.PrinterException;
 import java.math.BigInteger;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -21,9 +20,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
-import prime.metric.Metric;
 import view.helper.CheckResult;
-
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -216,8 +213,8 @@ public class GUI extends JFrame implements ActionListener {
 
 	private DefaultTableModel getNewModel() {
 		model = new DefaultTableModel();
-		for (Metric m : controller.getMetrics()) {
-			model.addColumn(m.getColumnName());
+		for (String name : controller.getColumnNames()) {
+			model.addColumn(name);
 		}
 		return model;
 	}
@@ -229,9 +226,9 @@ public class GUI extends JFrame implements ActionListener {
 			txfMaxInt.setEnabled(false);
 
 			model.setRowCount(0);
-			for (Metric m : controller.getMetrics()) {
-				m.reset();
-			}
+			//			for (Metric m : controller.getMetrics()) {
+			//				m.reset();
+			//			}
 
 			boolean timeout = controller.show();
 			if (timeout){
@@ -239,11 +236,11 @@ public class GUI extends JFrame implements ActionListener {
 			}
 
 			// add statistics row
-			Vector<Object> statistics = new Vector<Object>();
-			for (Metric m : controller.getMetrics()) {
-				statistics.add(m.getMin() + "->" + m.getMax());
-			}
-			model.addRow(statistics);
+			//			Vector<Object> statistics = new Vector<Object>();
+			//			for (Metric m : controller.getMetrics()) {
+			//				statistics.add(m.getMin() + "->" + m.getMax());
+			//			}
+			//			model.addRow(statistics);
 
 			txfMaxInt.setEnabled(true);
 			btnShow.setEnabled(true);

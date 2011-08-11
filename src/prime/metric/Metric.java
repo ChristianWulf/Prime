@@ -1,13 +1,8 @@
 package prime.metric;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import util.Pair;
-
-public class Metric {
+public abstract class Metric {
 
 	private static class PositiveInfinity extends BigInteger {
 		public PositiveInfinity() {
@@ -35,30 +30,29 @@ public class Metric {
 
 	public static final BigInteger						posInfinity	= new PositiveInfinity();
 	public static final BigInteger						negInfinity	= new NegativeInfinity();
-	public static BigInteger							bi;
-	public static BigInteger							fmax;
-	public static BigInteger							fmin;
-	public static BigInteger							smax;
-	public static boolean								isPrime;
-	public static boolean								isFermat;
-	public static Map<BigInteger, BigInteger>			primFactors	= new HashMap<BigInteger, BigInteger>();
-	public static BigInteger							start;
-	public static BigInteger							iterations	= BigInteger.ZERO;
-	public static BigInteger							f;
-	public static BigInteger							s;
-	public static BigInteger							fmax_minus_f;
-	public static BigInteger							smax_minus_s;
-	public static BigInteger							v;
-	public static BigInteger							w;
-	public static BigInteger							fmax_r;
-	public static BigInteger							smax_r;
-	public static BigInteger							fmax_min;
-	public static BigInteger							smax_min;
-	public static BigInteger							smax_modulo;
-	public static BigInteger							fmax_modulo;
-	public static int									fmax_r_sign;
-	public static int									smax_r_sign;
-	public static List<Pair<BigInteger, BigInteger>>	validPairs;
+	//	public static BigInteger							fmax;
+	//	public static BigInteger							fmin;
+	//	public static BigInteger							smax;
+	//	public static boolean								isPrime;
+	//	public static boolean								isFermat;
+	//	public static Map<BigInteger, BigInteger>			primFactors	= new HashMap<BigInteger, BigInteger>();
+	//	public static BigInteger							start;
+	//	public static BigInteger							iterations	= BigInteger.ZERO;
+	//	public static BigInteger							f;
+	//	public static BigInteger							s;
+	//	public static BigInteger							fmax_minus_f;
+	//	public static BigInteger							smax_minus_s;
+	//	public static BigInteger							v;
+	//	public static BigInteger							w;
+	//	public static BigInteger							fmax_r;
+	//	public static BigInteger							smax_r;
+	//	public static BigInteger							fmax_min;
+	//	public static BigInteger							smax_min;
+	//	public static BigInteger							smax_modulo;
+	//	public static BigInteger							fmax_modulo;
+	//	public static int									fmax_r_sign;
+	//	public static int									smax_r_sign;
+	//	public static List<Pair<BigInteger, BigInteger>>	validPairs;
 	public BigInteger									min			= posInfinity;
 	public BigInteger									max			= negInfinity;
 
@@ -72,9 +66,7 @@ public class Metric {
 		return columnName;
 	}
 
-	public String getResult() {
-		return "";
-	}
+	public abstract String getResult();
 
 	public String getMin() {
 		return min.toString();
