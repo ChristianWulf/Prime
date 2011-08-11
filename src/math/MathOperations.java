@@ -1,7 +1,6 @@
 package math;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
 import static prime.metric.ConditionChecker.isLastDigit2378;
 
 import java.math.BigInteger;
@@ -14,10 +13,11 @@ import util.Pair;
 
 public class MathOperations {
 
-	public static final BigInteger	TWO		= BigInteger.valueOf(2);
-	public static final BigInteger	FOUR	= BigInteger.valueOf(4);
-	public static final BigInteger	EIGHT	= BigInteger.valueOf(8);
-	public static final BigInteger	SIXTEEN	= BigInteger.valueOf(16);
+	private static final BigInteger ZERO = BigInteger.valueOf(0);
+	public static final BigInteger TWO = BigInteger.valueOf(2);
+	public static final BigInteger FOUR = BigInteger.valueOf(4);
+	public static final BigInteger EIGHT = BigInteger.valueOf(8);
+	public static final BigInteger SIXTEEN = BigInteger.valueOf(16);
 
 	public static BigInteger sqr(BigInteger val) {
 		return val.multiply(val);
@@ -35,7 +35,9 @@ public class MathOperations {
 			return BigInteger.valueOf(-1);
 		}
 
+		// System.out.print("getSqrt("+testValue+"): ");
 		BigInteger sqrt = sqrtFast(testValue);
+		// System.out.println(sqrt);
 		if (testValue.compareTo(sqr(sqrt)) != 0) {
 			return BigInteger.valueOf(-1);
 		} else {
@@ -97,27 +99,32 @@ public class MathOperations {
 	 * @param num
 	 * @return
 	 */
-	public static BigInteger sqrtFast(BigInteger num) {
-		BigInteger op = num;
-		BigInteger res = ZERO;
-		BigInteger one = ONE.shiftLeft(14); // The second-to-top bit is set:
-		// 1L<<30 for long
+	public static BigInteger sqrtFast(final BigInteger num) {
+		if (num.equals(ZERO))
+			return ZERO;
+		// Heron-Verfahren
+		BigInteger x0, x1 = num;
+		BigInteger diff;
+		do {
+			x0 = x1;
+			x1 = fHERON(num, x0);
+			diff = x0.subtract(x1).abs();
+			// System.out.println(num + ": " + x0 + "," + x1 + "|" + diff);
+		} while (diff.compareTo(ONE) > 0);
+		return x1;
+	}
 
-		// "one" starts at the highest power of four <= the argument.
-		while (one.compareTo(op) > 0) {
-			one = one.shiftRight(2);
-		}
+	public static void main(String[] args) {
+		System.out.println(sqrtFast(BigInteger.valueOf(9)));
+		System.out.println(sqrtFast(BigInteger.valueOf(281)));
+		System.out.println(sqrtFast(BigInteger.valueOf(341)));
+		System.out.println(sqrtFast(BigInteger.valueOf(561)));
+		System.out.println(sqrtFast(sqr(BigInteger.valueOf(86))));
+	}
 
-		while (one.compareTo(ZERO) != 0) {
-			if (op.compareTo(res.add(one)) >= 0) {
-				op = op.subtract(res.add(one));
-				res = res.shiftRight(1).add(one);
-			} else {
-				res = res.shiftRight(1);
-			}
-			one = one.shiftRight(2);
-		}
-		return res;
+	private static BigInteger fHERON(BigInteger a, BigInteger xn) {
+		BigInteger z = xn.add(a.divide(xn));
+		return z.divide(TWO);
 	}
 
 	public static int sqrt(int num) {
@@ -188,8 +195,8 @@ public class MathOperations {
 	public static Pair<BigInteger, BigInteger> getSquaredRemainder(BigInteger base) {
 		final BigInteger base_sqrd = sqr(base);
 		/*
-		 * y1 \in {0,1,..,15} at least, more precisely y1 \in {0,1,4,9} because x^2==y1 mod 16
-		 * always results in one of these four remainders.
+		 * y1 \in {0,1,..,15} at least, more precisely y1 \in {0,1,4,9} because
+		 * x^2==y1 mod 16 always results in one of these four remainders.
 		 */
 		int y1 = base_sqrd.mod(SIXTEEN).intValue();
 		BigInteger r;
@@ -296,6 +303,13 @@ public class MathOperations {
 			b = h;
 		}
 		return a;
+	}
+
+	public static BigInteger min(BigInteger f0s0, BigInteger f0fmin) {
+		if (f0s0.compareTo(f0fmin) <= 0)
+			return f0s0;
+		else
+			return f0fmin;
 	}
 
 }

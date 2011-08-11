@@ -35,6 +35,8 @@ public class ValueFactory {
 	private final List<Pair<BigInteger, BigInteger>> cache = new ArrayList<Pair<BigInteger, BigInteger>>();
 	private boolean cacheComplete = false;
 
+	private BigInteger currentF;
+
 	public ValueFactory(BigInteger x) {
 		this.x = x;
 	}
@@ -199,6 +201,16 @@ public class ValueFactory {
 
 	public void addToCache(Pair<BigInteger, BigInteger> newPair) {
 		cache.add(newPair);
+	}
+
+	public BigInteger getCurrentF() {
+		if (currentF == null)
+			currentF = getFmin();
+		return currentF;
+	}
+
+	public void incCurrentF() {
+		currentF = currentF.add(ONE);
 	}
 
 }

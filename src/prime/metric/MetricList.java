@@ -41,26 +41,32 @@ public class MetricList extends ArrayList<Metric> {
 				return x.toString();
 			}
 		});
-		add(new Metric("prime?") {
+		add(new Metric("log(x)") {
 			@Override
 			public String getResult() {
-				return factory.getIsPrime() ? "yes" : "no";
+				return "" + x.bitLength();
 			}
 		});
-		add(new Metric("prim fac") {
-			@Override
-			public String getResult() {
-				Map<BigInteger, BigInteger> primFactors = factory.getPrimFactors();
-				if (primFactors.isEmpty()) {
-					return "-";
-				}
-				String primFactorsStr = "";
-				for (BigInteger key : primFactors.keySet()) {
-					primFactorsStr += key + "^" + primFactors.get(key) + ",";
-				}
-				return primFactorsStr.substring(0, primFactorsStr.length() - 1);
-			}
-		});
+		// add(new Metric("prime?") {
+		// @Override
+		// public String getResult() {
+		// return factory.getIsPrime() ? "yes" : "no";
+		// }
+		// });
+		// add(new Metric("prim fac") {
+		// @Override
+		// public String getResult() {
+		// Map<BigInteger, BigInteger> primFactors = factory.getPrimFactors();
+		// if (primFactors.isEmpty()) {
+		// return "-";
+		// }
+		// String primFactorsStr = "";
+		// for (BigInteger key : primFactors.keySet()) {
+		// primFactorsStr += key + "^" + primFactors.get(key) + ",";
+		// }
+		// return primFactorsStr.substring(0, primFactorsStr.length() - 1);
+		// }
+		// });
 		add(new Metric("#prim factors") {
 			@Override
 			public String getResult() {
@@ -97,24 +103,25 @@ public class MetricList extends ArrayList<Metric> {
 		// return start.toString();
 		// }
 		// });
-		//		add(new Metric("iterations") {
-		//			@Override
-		//			public String getResult() {
-		//				BigInteger iterations = factory.getIterations();
-		//				if (max.compareTo(iterations) < 0) {
-		//					max = iterations;
-		//				}
-		//				return iterations.toString();
-		//			}
-		//		});
+		// add(new Metric("iterations") {
+		// @Override
+		// public String getResult() {
+		// BigInteger iterations = factory.getIterations();
+		// if (max.compareTo(iterations) < 0) {
+		// max = iterations;
+		// }
+		// return iterations.toString();
+		// }
+		// });
 		//
-		//		add(new Metric("x/iterations") {
-		//			@Override
-		//			public String getResult() {
-		//				BigInteger iterations = factory.getIterations();
-		//				return String.format("%.3f", x.doubleValue() / iterations.doubleValue());
-		//			}
-		//		});
+		// add(new Metric("x/iterations") {
+		// @Override
+		// public String getResult() {
+		// BigInteger iterations = factory.getIterations();
+		// return String.format("%.3f", x.doubleValue() /
+		// iterations.doubleValue());
+		// }
+		// });
 		// add(new Metric("x mod (f-s)") {
 		// @Override
 		// public String getResult() {
@@ -173,27 +180,36 @@ public class MetricList extends ArrayList<Metric> {
 				return fs;
 			}
 		});
-		// add(new Metric("fi-si") {
-		// @Override
-		// public String getResult() {
-		// String fs = "";
-		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
-		// fs += "(" + pair.first.subtract(pair.second) + ")";
-		// }
-		// return fs;
-		// }
-		// });
-		// add(new Metric("fi-fmin") {
-		// @Override
-		// public String getResult() {
-		// String fs = "";
-		// BigInteger fmin = MathOperations.sqrtFast(x).add(ONE);
-		// for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
-		// fs += "(" + pair.first.subtract(fmin) + ")";
-		// }
-		// return fs;
-		// }
-		// });
+		add(new Metric("fi-si") {
+			@Override
+			public String getResult() {
+				String fs = "";
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
+					fs += "(" + pair.first.subtract(pair.second) + ")";
+				}
+				return fs;
+			}
+		});
+		add(new Metric("fi-fmin") {
+			@Override
+			public String getResult() {
+				String fs = "";
+				BigInteger fmin = MathOperations.sqrtFast(x).add(ONE);
+				for (Pair<BigInteger, BigInteger> pair : factory.getValidPairs()) {
+					fs += "(" + pair.first.subtract(fmin) + ")";
+				}
+				return fs;
+			}
+		});
+		add(new Metric("min(1,2)") {
+			@Override
+			public String getResult() {
+				BigInteger f0s0 = factory.getF0().subtract(factory.getS0());
+				BigInteger f0fmin = factory.getF0().subtract(factory.getFmin());
+				min = MathOperations.min(f0s0, f0fmin);
+				return min + " <= " + x.bitLength();
+			}
+		});
 		// add(new Metric("fi²-fmin²") {
 		// @Override
 		// public String getResult() {
@@ -351,7 +367,7 @@ public class MetricList extends ArrayList<Metric> {
 			@Override
 			public String getResult() {
 				BigInteger fmax2_x = sqr(factory.getFmax()).mod(x);
-				return "" + fmax2_x.doubleValue();
+				return fmax2_x.toString();
 			}
 		});
 		add(new Metric("sqrt(fmin² mod x)") {
@@ -598,16 +614,16 @@ public class MetricList extends ArrayList<Metric> {
 		// return smax_r.multiply(BigInteger.valueOf(smax_r_sign)).toString();
 		// }
 		// });
-		//		add(new Metric("diff_min(fmax)") {
-		//			@Override
-		//			public String getResult() {
-		//				BigInteger k = v.divide(fmax_modulo);
-		//				if (ConditionChecker.isOfNegativeForm(v, fmax_modulo)) {
-		//					k = k.add(ONE);
-		//				}
-		//				return k.subtract(fmax_min).toString();
-		//			}
-		//		});
+		// add(new Metric("diff_min(fmax)") {
+		// @Override
+		// public String getResult() {
+		// BigInteger k = v.divide(fmax_modulo);
+		// if (ConditionChecker.isOfNegativeForm(v, fmax_modulo)) {
+		// k = k.add(ONE);
+		// }
+		// return k.subtract(fmax_min).toString();
+		// }
+		// });
 		// add(new Metric("diff_max(fi)") {
 		// @Override
 		// public String getResult() {
