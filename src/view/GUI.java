@@ -21,8 +21,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
-import main.CheckResult;
-import main.Metric;
+import prime.metric.Metric;
+import view.helper.CheckResult;
+
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;

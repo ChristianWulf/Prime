@@ -1,4 +1,4 @@
-package prime.db;
+package prime;
 
 import java.math.BigInteger;
 

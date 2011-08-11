@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import prime.IsPrime;
 import prime.db.entity.X_UP_Y_MOD_M;
 import util.Pair;
 
@@ -28,7 +29,7 @@ public class DB {
 		System.out.println("x\ty\tr\tm");
 
 		for (int n = 3; n < MAX; n += 2) {
-			if (Test.isPrime(n)) {
+			if (IsPrime.isPrime(n)) {
 				X_UP_Y_MOD_M metric = new X_UP_Y_MOD_M();
 				metric.setX(2);
 				metric.setY(n - 1);
@@ -51,7 +52,7 @@ public class DB {
 			for (Pair<Integer, Integer> p : rests) {
 				Integer m = p.first;
 				Integer rest = p.second;
-				if (!Test.isPrime(n)) {
+				if (!IsPrime.isPrime(n)) {
 					compositeRests[m].add(rest);
 				} else {
 					primeRests[m].add(rest);

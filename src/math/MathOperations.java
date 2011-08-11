@@ -2,7 +2,7 @@ package math;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
-import static main.Filter.isLastDigit2378;
+import static prime.metric.ConditionChecker.isLastDigit2378;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -250,7 +250,7 @@ public class MathOperations {
 		sequence = sequence.add(dist1);
 		iters.add(sequence);
 		for (BigInteger i = min.add(BigInteger.ONE); i.compareTo(max) <= 0; i = i
-		.add(BigInteger.ONE)) {
+				.add(BigInteger.ONE)) {
 			sequence = sequence.add(dist2);
 			iters.add(sequence);
 			sequence = sequence.add(dist1);

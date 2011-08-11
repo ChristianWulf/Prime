@@ -1,4 +1,4 @@
-package main;
+package prime.metric;
 
 import java.math.BigInteger;
 import java.util.HashMap;
